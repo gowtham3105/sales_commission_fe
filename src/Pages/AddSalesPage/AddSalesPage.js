@@ -18,13 +18,13 @@ export const AddSalesPage = () => {
 
 				if (validData(contents)) {
 					setData(contents);
-					var res = await AddSales(contents);
+					// var res = await AddSales(contents);
 
-					if (res) {
-						alert('Sales added successfully');
-					} else {
-						alert('Error adding sales');
-					}
+					// if (res) {
+					// 	alert('Sales added successfully');
+					// } else {
+					// 	alert('Error adding sales');
+					// }
 				} else {
 					alert("File doesn't contain both product and salesmen details");
 				}
@@ -52,8 +52,6 @@ export const AddSalesPage = () => {
 			readers.push(promise);
 		}
 
-		// console.log(readers)
-
 		Promise.all(readers).then(async (values) => {
 			console.log(values, 'values');
 			const result = values.reduce((acc, cur) => {
@@ -65,13 +63,13 @@ export const AddSalesPage = () => {
 			console.log(result);
 			setData(result);
 
-			var res = await AddSales(result);
+			// var res = await AddSales(result);
 
-			if (res) {
-				alert('Sales added successfully');
-			} else {
-				alert('Error adding sales');
-			}
+			// if (res) {
+			// 	alert('Sales added successfully');
+			// } else {
+			// 	alert('Error adding sales');
+			// }
 		});
 	};
 
@@ -95,13 +93,14 @@ export const AddSalesPage = () => {
 		return false;
 	};
 
-	const isSalesman = (data) => {
-		const fieldNames = Object.keys(data[0]);
-
-		if (fieldNames.includes('salesman_name')) {
-			return true;
-		}
-		return false;
+	const handleAddSales = () => {
+		return AddSales(data).then((res) => {
+			if (res) {
+				alert('Sales added successfully');
+			} else {
+				alert('Error adding sales');
+			}
+		});
 	};
 
 	return (
@@ -111,6 +110,10 @@ export const AddSalesPage = () => {
 			<div>
 				<input type='file' onChange={handleFileUpload} multiple />
 				{data && <div>{JSON.stringify(data)}</div>}
+				<br />
+				<div>
+					<button onClick={handleAddSales}>Add</button>
+				</div>
 			</div>
 		</div>
 	);
