@@ -8,6 +8,30 @@ export const AddSalesPage = () => {
 		if (event.target.files.length === 0) {
 			return;
 		}
+
+		if (event.target.files.length === 1) {
+			const fileReader = new FileReader();
+
+			fileReader.readAsText(event.target.files[0], 'UTF-8');
+			fileReader.onload = async (event) => {
+				const contents = JSON.parse(event.target.result);
+
+				if (validData(contents)) {
+					setData(contents);
+					var res = await AddSales(contents);
+
+					if (res) {
+						alert('Sales added successfully');
+					} else {
+						alert('Error adding sales');
+					}
+				} else {
+					alert("File doesn't contain both product and salesmen details");
+				}
+			};
+			return;
+		}
+
 		const readers = [];
 
 		for (let i = 0; i < event.target.files.length; i++) {
@@ -28,13 +52,17 @@ export const AddSalesPage = () => {
 			readers.push(promise);
 		}
 
+		// console.log(readers)
+
 		Promise.all(readers).then(async (values) => {
+			console.log(values, 'values');
 			const result = values.reduce((acc, cur) => {
 				const key = Object.keys(cur)[0];
 				acc[key] = cur[key];
 				return acc;
 			}, {});
 
+			console.log(result);
 			setData(result);
 
 			var res = await AddSales(result);
@@ -54,6 +82,25 @@ export const AddSalesPage = () => {
 			return true;
 		}
 
+		return false;
+	};
+
+	const validData = (data) => {
+		const fieldNames = Object.keys(data);
+
+		if (fieldNames.includes('product') && fieldNames.includes('salesman')) {
+			return true;
+		}
+
+		return false;
+	};
+
+	const isSalesman = (data) => {
+		const fieldNames = Object.keys(data[0]);
+
+		if (fieldNames.includes('salesman_name')) {
+			return true;
+		}
 		return false;
 	};
 
