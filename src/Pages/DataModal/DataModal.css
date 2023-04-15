@@ -1,0 +1,31 @@
+.modal-cancel {
+    color: white!important;
+    background-color: #ed2626!important;
+    border: solid #ed2626!important;
+    font-weight: 600!important;
+    border-radius: 15px!important;
+}
+
+.modal-cancel:hover {
+    color: #ed2626!important;
+    background-color: white!important;
+    border: solid #ed2626!important;
+    font-weight: 600!important;
+}
+
+.modal-key {
+    font-weight: 600!important;
+    color: #052f5b!important;
+
+}
+
+.modal-value {
+    
+
+}
+
+.modal-modal-title{
+    font-weight: 600!important;
+    color: #052f5b!important;
+    font-size: 28px!important;
+}

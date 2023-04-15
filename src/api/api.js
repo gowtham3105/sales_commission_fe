@@ -21,4 +21,24 @@ const AddSales = (data) => {
 	});
 };
 
-export { AddSales };
+const GetSales = (date) => {
+	return new Promise((myResolve, myReject) => {
+		fetch(API_ENDPOINT + 'sales/commission?date=' + date, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+			// mode: 'no-cors',
+		})
+			.then((result) => {
+				if (result.status === 200) myResolve(result.json());
+				else throw new Error('Error ' + result.status);
+			})
+			.catch((err) => {
+				myReject(false);
+			});
+	});
+}
+
+export { AddSales, GetSales };

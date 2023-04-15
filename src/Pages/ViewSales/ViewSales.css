@@ -1,0 +1,6 @@
+.clickable{
+    cursor: pointer!important;
+    color: #3a93f1!important;
+    font-weight: 600!important;
+    text-decoration: underline;
+}

@@ -1,9 +1,13 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './AddSalesPage.css';
 import { AddSales } from '../../api/api';
+import { Button } from '@mui/material';
+import { JsonViewer } from '@textea/json-viewer';
+import Swal from 'sweetalert2';
 
 export const AddSalesPage = () => {
-	const [data, setData] = useState({});
+	const [data, setData] = useState(null);
+	const [fileName, setFileName] = useState('');
 	const handleFileUpload = (event) => {
 		if (event.target.files.length === 0) {
 			return;
@@ -11,31 +15,32 @@ export const AddSalesPage = () => {
 
 		if (event.target.files.length === 1) {
 			const fileReader = new FileReader();
+			// get file name
+			setFileName(event.target.files[0].name);
 
 			fileReader.readAsText(event.target.files[0], 'UTF-8');
 			fileReader.onload = async (event) => {
 				const contents = JSON.parse(event.target.result);
-
 				if (validData(contents)) {
 					setData(contents);
-					// var res = await AddSales(contents);
-
-					// if (res) {
-					// 	alert('Sales added successfully');
-					// } else {
-					// 	alert('Error adding sales');
-					// }
 				} else {
-					alert("File doesn't contain both product and salesmen details");
+					Swal.fire({
+						icon: 'error',
+						title: 'Oops...',
+						text: "File doesn't contain both product and salesmen details",
+					});
 				}
 			};
 			return;
 		}
 
 		const readers = [];
+		// get file names by joining all file names
+		const fileNames = [];
 
 		for (let i = 0; i < event.target.files.length; i++) {
 			const fileReader = new FileReader();
+			fileNames.push(event.target.files[i].name);
 
 			fileReader.readAsText(event.target.files[i], 'UTF-8');
 			const promise = new Promise((resolve) => {
@@ -52,24 +57,24 @@ export const AddSalesPage = () => {
 			readers.push(promise);
 		}
 
+		setFileName(fileNames.join(', '));
+
 		Promise.all(readers).then(async (values) => {
-			console.log(values, 'values');
 			const result = values.reduce((acc, cur) => {
 				const key = Object.keys(cur)[0];
 				acc[key] = cur[key];
 				return acc;
 			}, {});
 
-			console.log(result);
-			setData(result);
-
-			// var res = await AddSales(result);
-
-			// if (res) {
-			// 	alert('Sales added successfully');
-			// } else {
-			// 	alert('Error adding sales');
-			// }
+			if (validData(result)) {
+				setData(result);
+			} else {
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops...',
+					text: "File doesn't contain both product and salesmen details",
+				});
+			}
 		});
 	};
 
@@ -96,9 +101,17 @@ export const AddSalesPage = () => {
 	const handleAddSales = () => {
 		return AddSales(data).then((res) => {
 			if (res) {
-				alert('Sales added successfully');
+				Swal.fire({
+					icon: 'success',
+					title: 'Success',
+					text: 'Sales added successfully',
+				});
 			} else {
-				alert('Error adding sales');
+				Swal.fire({
+					icon: 'error',
+					title: 'Oops...',
+					text: 'Something went wrong',
+				});
 			}
 		});
 	};
@@ -108,12 +121,31 @@ export const AddSalesPage = () => {
 			<h1>Add Sales</h1>
 
 			<div>
-				<input type='file' onChange={handleFileUpload} multiple />
-				{data && <div>{JSON.stringify(data)}</div>}
+				<label htmlFor='file-upload' className='custom-file-upload'>
+					Choose File
+				</label>
+
+				<input
+					id='file-upload'
+					type='file'
+					onChange={handleFileUpload}
+					multiple
+					accept='application/JSON'
+					hidden
+				/>
+
+				<br />
+				{fileName ? <div>File Names: {fileName}</div> : 'No file selected'}
 				<br />
 				<div>
-					<button onClick={handleAddSales}>Add</button>
+					<Button onClick={handleAddSales} variant='contained'>
+						Add
+					</Button>
 				</div>
+				<br />
+				{data && <JsonViewer value={data} />}
+
+				{/* {data && <div>{JSON.stringify(data)}</div>} */}
 			</div>
 		</div>
 	);
