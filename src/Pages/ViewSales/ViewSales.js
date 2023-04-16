@@ -11,6 +11,9 @@ export const ViewSales = () => {
 	const [showModal, setShowModal] = useState(false);
 	const [modalData, setModalData] = useState(null);
 
+	const [productData, setProductData] = useState(null);
+	const [salesmanData, setSalesmanData] = useState(null);
+
 	const columns = [
 		{ field: 'id', headerName: 'ID', width: 90 },
 		{ field: 'product', headerName: 'Product', width: 150 },
@@ -30,12 +33,78 @@ export const ViewSales = () => {
 		GetSales(date)
 			.then((res) => {
 				setResults(res);
+				setProductData(calculateProductSales(res));
+				setSalesmanData(calculateSalesmanSales(res));
 			})
 			.catch((err) => {
 				console.log(err, 'err');
 				alert('Error fetching sales data');
 			});
 	}, [date]);
+
+	const calculateProductSales = (data) => {
+		// calculate product sales quantity and value by area
+		let product_sales = {};
+		data.forEach((sale) => {
+			if (product_sales[sale.product]) {
+				if (product_sales[sale.product][sale.salesman_area]) {
+					product_sales[sale.product][sale.salesman_area]['product_quantity'] +=
+						parseInt(sale.product_quantity);
+					product_sales[sale.product][sale.salesman_area]['sale_amount'] +=
+						parseInt(sale.sale_amount);
+				} else {
+					product_sales[sale.product][sale.salesman_area] = {
+						product_quantity: parseInt(sale.product_quantity),
+						sale_amount: parseInt(sale.sale_amount),
+					};
+				}
+			} else {
+				// to int
+
+				product_sales[sale.product] = {
+					[sale.salesman_area]: {
+						product_quantity: parseInt(sale.product_quantity),
+						sale_amount: parseInt(sale.sale_amount),
+					},
+				};
+			}
+		});
+
+		return product_sales;
+	};
+
+	const calculateSalesmanSales = (data) => {
+		// calculate salesman sales quantity and value by area
+
+		let salesman_sales = {};
+
+		data.forEach((sale) => {
+			if (salesman_sales[sale.salesman_name]) {
+				if (salesman_sales[sale.salesman_name][sale.salesman_area]) {
+					salesman_sales[sale.salesman_name][sale.salesman_area][
+						'salesman_commission'
+					] += parseFloat(sale.salesman_commission);
+
+					salesman_sales[sale.salesman_name][sale.salesman_area][
+						'sale_amount'
+					] += parseInt(sale.sale_amount);
+				} else {
+					salesman_sales[sale.salesman_name][sale.salesman_area] = {
+						salesman_commission: parseFloat(sale.salesman_commission),
+						sale_amount: parseInt(sale.sale_amount),
+					};
+				}
+			} else {
+				salesman_sales[sale.salesman_name] = {};
+				salesman_sales[sale.salesman_name][sale.salesman_area] = {
+					salesman_commission: parseFloat(sale.salesman_commission),
+					sale_amount: parseInt(sale.sale_amount),
+				};
+			}
+		});
+
+		return salesman_sales;
+	};
 
 	const handleModalClose = () => {
 		setShowModal(false);
@@ -65,9 +134,18 @@ export const ViewSales = () => {
 							setModalData({
 								data_type: 'salesman',
 								'Salesman Name': e.row.salesman_name,
-								'Commission Amount': e.row.salesman_commission,
+								'Commission Amount':
+								// round to 2 decimal places
+									Math.floor(
+									salesmanData[e.row.salesman_name][e.row.salesman_area][
+										'salesman_commission'
+									]* 10 
+								)/ 10,
 								Area: e.row.salesman_area,
-								'Sales Amount': e.row.sale_amount,
+								'Sales Amount':
+									salesmanData[e.row.salesman_name][e.row.salesman_area][
+										'sale_amount'
+									],
 							});
 						} else if (e.field === 'product') {
 							setShowModal(true);
@@ -75,8 +153,14 @@ export const ViewSales = () => {
 								data_type: 'product',
 								'Product Name': e.row.product,
 								Area: e.row.salesman_area,
-								Quantity: e.row.product_quantity,
-								'Sales Amount': e.row.sale_amount,
+								Quantity:
+									productData[e.row.product][e.row.salesman_area][
+										'product_quantity'
+									],
+								'Sales Amount':
+									productData[e.row.product][e.row.salesman_area][
+										'sale_amount'
+									],
 							});
 						}
 					}}
